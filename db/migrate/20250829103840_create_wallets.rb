@@ -8,7 +8,7 @@ class CreateWallets < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :wallets, [:walletable_type, :walletable_id]
+    add_index :wallets, [ :walletable_type, :walletable_id ]
     add_index :wallets, :currency
   end
 end

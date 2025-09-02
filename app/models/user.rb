@@ -11,7 +11,7 @@ class User < ApplicationRecord
   after_create :create_default_wallets
 
   # Get wallet for specific currency
-  def wallet_for(currency = 'USD')
+  def wallet_for(currency = "USD")
     wallets.find_by(currency: currency) || create_wallet_for(currency)
   end
 
@@ -45,11 +45,11 @@ class User < ApplicationRecord
   # Simplified currency conversion rates
   def currency_to_usd_rate(currency)
     case currency
-    when 'USD' then 1.0
-    when 'EUR' then 1.1
-    when 'IDR' then 0.000067
-    when 'JPY' then 0.0067
-    when 'GBP' then 1.25
+    when "USD" then 1.0
+    when "EUR" then 1.1
+    when "IDR" then 0.000067
+    when "JPY" then 0.0067
+    when "GBP" then 1.25
     else 1.0
     end
   end

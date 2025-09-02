@@ -13,7 +13,7 @@ class CreateTransactions < ActiveRecord::Migration[8.0]
 
     add_index :transactions, :transaction_type
     add_index :transactions, :currency
-    add_index :transactions, [:source_wallet_id, :created_at]
-    add_index :transactions, [:target_wallet_id, :created_at]
+    add_index :transactions, [ :source_wallet_id, :created_at ]
+    add_index :transactions, [ :target_wallet_id, :created_at ]
   end
 end
