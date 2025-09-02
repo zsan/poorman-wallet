@@ -1,0 +1,198 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Navigation -->
+  <nav class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <h1 class="text-xl font-semibold text-gray-900">Wallet System</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-gray-700">Welcome, <%= current_user.username %></span>
+          <%= button_to "Logout", logout_path, method: :delete,
+                class: "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium" %>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <!-- Flash Messages -->
+    <% if flash[:notice] %>
+      <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline"><%= flash[:notice] %></span>
+      </div>
+    <% end %>
+
+    <!-- Wallet Balances -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">Your Wallets</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <% @user_wallets.each do |wallet| %>
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold text-sm"><%= wallet[:currency] %></span>
+                  </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">
+                      <%= wallet[:currency] %> Wallet
+                    </dt>
+                    <dd class="text-lg font-medium text-gray-900">
+                      <%= number_with_precision(wallet[:balance], precision: 2) %> <%= wallet[:currency] %>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Total Balance in USD -->
+        <div class="bg-gradient-to-r from-purple-500 to-pink-500 overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
+                  <span class="text-white font-bold text-sm">$</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-white text-opacity-90 truncate">
+                    Total Balance (USD)
+                  </dt>
+                  <dd class="text-lg font-medium text-white">
+                    $<%= number_with_precision(@total_balance_usd, precision: 2) %>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Recent Transactions -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Transactions</h3>
+          <div class="flow-root">
+            <ul class="-my-5 divide-y divide-gray-200">
+              <% @recent_transactions.each do |transaction| %>
+                <li class="py-4">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <% case transaction.transaction_type %>
+                      <% when 'credit' %>
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span class="text-green-600 text-sm">+</span>
+                        </div>
+                      <% when 'debit' %>
+                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                          <span class="text-red-600 text-sm">-</span>
+                        </div>
+                      <% when 'transfer' %>
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span class="text-blue-600 text-sm">↔</span>
+                        </div>
+                      <% end %>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        <%= transaction.description || transaction.transaction_type.capitalize %>
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        <%= transaction.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+                      </p>
+                    </div>
+                    <div class="flex-shrink-0 text-sm">
+                      <% if transaction.transaction_type == 'credit' %>
+                        <span class="text-green-600 font-medium">+<%= number_with_precision(transaction.amount, precision: 2) %> <%= transaction.currency %></span>
+                      <% elsif transaction.transaction_type == 'debit' %>
+                        <span class="text-red-600 font-medium">-<%= number_with_precision(transaction.amount, precision: 2) %> <%= transaction.currency %></span>
+                      <% else %>
+                        <span class="text-blue-600 font-medium"><%= number_with_precision(transaction.amount, precision: 2) %> <%= transaction.currency %></span>
+                      <% end %>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Prices -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Live Stock Prices</h3>
+          <div class="space-y-4">
+            <% @stock_prices.each do |stock| %>
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="text-sm font-medium text-gray-900"><%= stock[:symbol] %></p>
+                  <p class="text-xs text-gray-500"><%= stock[:currency] %></p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-medium text-gray-900">
+                    <%= number_with_precision(stock[:price], precision: 2) %>
+                  </p>
+                  <p class="text-xs <%= stock[:change_percent] >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                    <%= stock[:change_percent] >= 0 ? '+' : '' %><%= number_with_precision(stock[:change_percent], precision: 2) %>%
+                  </p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Documentation -->
+    <div class="mt-8 bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">API Documentation</h3>
+        <div class="prose max-w-none">
+          <p class="text-gray-600 mb-4">Use the following API endpoints to interact with the wallet system:</p>
+
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-medium text-gray-900 mb-2">Authentication</h4>
+            <p class="text-sm text-gray-600 mb-2">Include this header in all API requests:</p>
+            <code class="bg-gray-800 text-green-400 px-2 py-1 rounded text-xs">Authorization: Bearer demo-api-key</code>
+          </div>
+
+          <div class="mt-4 space-y-4">
+            <div class="border-l-4 border-blue-500 pl-4">
+              <h4 class="font-medium text-gray-900">Create Credit Transaction</h4>
+              <p class="text-sm text-gray-600">POST /api/v1/transactions/credit</p>
+              <p class="text-xs text-gray-500">Body: wallet_id, wallet_type, amount, currency, description</p>
+            </div>
+
+            <div class="border-l-4 border-red-500 pl-4">
+              <h4 class="font-medium text-gray-900">Create Debit Transaction</h4>
+              <p class="text-sm text-gray-600">POST /api/v1/transactions/debit</p>
+              <p class="text-xs text-gray-500">Body: wallet_id, wallet_type, amount, currency, description</p>
+            </div>
+
+            <div class="border-l-4 border-green-500 pl-4">
+              <h4 class="font-medium text-gray-900">Create Transfer Transaction</h4>
+              <p class="text-sm text-gray-600">POST /api/v1/transactions/transfer</p>
+              <p class="text-xs text-gray-500">Body: source_wallet_id, source_wallet_type, target_wallet_id, target_wallet_type, amount, currency, description</p>
+            </div>
+
+            <div class="border-l-4 border-purple-500 pl-4">
+              <h4 class="font-medium text-gray-900">Get Transactions</h4>
+              <p class="text-sm text-gray-600">GET /api/v1/transactions</p>
+              <p class="text-xs text-gray-500">Query: limit (optional)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
